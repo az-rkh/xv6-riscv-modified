@@ -7,6 +7,8 @@
 #include "proc.h"
 #include "vm.h"
 
+#define ITERATIONS 10000
+
 uint64
 sys_exit(void)
 {
@@ -106,4 +108,54 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+uint64 sys_hello(void) {
+  printf("HELLO FROM XV6!\n");
+  return 0;
+}
+
+uint64 sys_pingpong(void) {
+  int pipeA[2];
+  int pipeB[2];
+  char byteTransf = 'A';
+  char byteReceive;
+
+  if (pipe(pipeA) < 0 || pipe(pipeB) < 0) {
+    printf("pipe failed\n");
+    exit();
+  }
+
+  int rc = kfork();
+  int start = sys_uptime();
+  if (rc<0) { 
+    for (int i = 0; i < ITERATIONS; i++) {
+      printf("fork failed\n");
+    }
+  }
+  else if (rc == 0) {
+    for (int i = 0; i < ITERATIONS; i++) {
+      readi(pipeA[0], &byteTransf, 1, 1, 1);
+      writei(pipeB[1], &byteTransf, 1, 1, 1);
+      exit(0);
+    }
+  }
+  else {
+    for (int i = 0; i < ITERATIONS; i++) {
+      writei(pipeA[1], &byteTransf, 1, 1, 1);
+      readi(pipeB[0], &byteReceive, 1, 1, 1);
+      exit(0);
+    }
+    kwait(0);
+  }
+  int end = sys_uptime();
+
+  close(pipeA[2]);
+  close(pipeB[2]);
+
+  int ticks = start - end;
+  double seconds = ticks / 100;
+
+  printf("%lf", seconds);
+  return 0;
 }

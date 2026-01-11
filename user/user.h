@@ -27,7 +27,7 @@ int uptime(void);
 int hello(void);
 int pingpong(void);
 int freemem(void);
-// int calculator(void);
+int calculator(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

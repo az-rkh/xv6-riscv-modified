@@ -44,3 +44,4 @@ entry("pause");
 entry("uptime");
 entry("hello");
 entry("freemem");
+entry("calculator");

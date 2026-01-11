@@ -23,4 +23,4 @@
 #define SYS_hello  22
 #define SYS_pingpong 23
 #define SYS_freemem 24
-// #define SYS_calculator 25
+#define SYS_calculator 25

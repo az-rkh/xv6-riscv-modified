@@ -1,5 +1,6 @@
 #include <kernel/types.h>
 #include <kernel/stat.h>
+#include <user/user.h>
 
 int main(char *s, int *a, char *op, int *b) {
     *a = atoi(s);

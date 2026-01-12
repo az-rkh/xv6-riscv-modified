@@ -148,6 +148,7 @@ UPROGS=\
 	$U/_hello\
 	$U/_freemem\
 	$U/_pingpong\
+	$U/_calc\
 	
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

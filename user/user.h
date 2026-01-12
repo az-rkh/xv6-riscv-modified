@@ -27,7 +27,8 @@ int uptime(void);
 int hello(void);
 int pingpong(void);
 int freemem(void);
-int calculator(void);
+int calc(void);
+int parser(char *s, int *a, char *op, int *b);
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -33,16 +33,16 @@ int main(void) {
     printf("Type |calculate| to perform mathematical calculation, or |exit| to exit this program\n");
     read(0, type, sizeof(type));
 
-    parse(type, &a, &op, &b);
-
-    printf("Parsed: %d, %c, %d", a, op, b);
 
     // if (type[0] == ' ') {
     //     printf("Type something\n");
     //     exit(0);
     // }
-    if (strcmp(type, "exit")) {
+    if (!strcmp(type, "exit")) {
         printf("Exiting program.\n");
         exit(0);
     }
+
+    parse(type, &a, &op, &b);
+    printf("Parsed: %d, %c, %d\n", a, op, b);
 }

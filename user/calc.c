@@ -5,22 +5,30 @@
 int parse(char *s, int *a, char *op, int *b) {
     *a = atoi(s);
 
-    while (*s && *s != ' ') {
+    if (*s == ' ')
         s++;
-    }
-    while (*s == ' ') {
+
+    while (*s >= '0' && *s <= '9' && *s != '\0') {
         s++;
     }
     
+    while (*s == ' ' && *s != '\0') {
+        s++;
+    }
     *op = *s;
     s++;
 
-    while (*s == ' ') {
+
+    if (*s != '\0') {
+        s++;
+    }
+
+    while (*s == ' ' && *s != '\0') {
         s++;
     }
 
     *b = atoi(s);
-    s++;
+
     return 0;
 }
 
@@ -29,7 +37,7 @@ int main(void) {
     int a = 0, b = 0;
     char op = 0; 
     // int res;
-    printf("======= Calculator ========");
+    printf("======= Calculator ========\n");
     printf("Type |calculate| to perform mathematical calculation, or |exit| to exit this program\n");
     read(0, type, sizeof(type));
 

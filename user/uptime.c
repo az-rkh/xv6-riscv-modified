@@ -4,7 +4,12 @@
 
 
 int main(void) {
-    int time = uptime();
-    printf("Uptime: %d\n", time);
+    int ticks = uptime();
+
+    int seconds = ticks / 10;
+
+    int decimal = ticks % 10;
+
+    printf("Uptime: %d,%d seconds\n", seconds, decimal);
     exit(0);
 }

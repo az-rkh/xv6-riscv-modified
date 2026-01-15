@@ -39,18 +39,26 @@ int main(void) {
     int res = 0;
     printf("======= Calculator ========\n");
     printf("Type |calculate| to perform mathematical calculation,\n or |exit| to exit this program\n");
-    read(0, type, sizeof(type));
-    
-    if (!strcmp(type, 'exit')) {
-        printf("Exiting program.\n");
-        exit(0);
-    }
 
-    parse(type, &a, &op, &b);
+    while (1) {
+        
+        printf("calc >" );
+        memset(type, 0, sizeof(type));
 
-    int abort = 0;
+        int n = read(0, type, sizeof(type));
+        if (n <= 0) break;
 
-    while (abort == 0) {
+        if (type[strlen(type) - 1] == '\n') {
+            type[strlen(type) - 1] = '\0';
+        }
+        
+        if (strcmp(type, "exit") == 0) {
+            printf("Exiting program.\n");
+            exit(0);
+        }
+
+        parse(type, &a, &op, &b);
+        
         if (op == '+') {
             res = a + b;
         }
@@ -67,7 +75,7 @@ int main(void) {
             }
             res = a / b;
         }
-    }
 
-    printf("Result: %d\n", res);
+        printf("Result: %d\n", res);
+    }
 }

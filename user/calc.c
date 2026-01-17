@@ -48,8 +48,12 @@ int main(void) {
         int n = read(0, type, sizeof(type));
         if (n <= 0) break;
 
-        if (type[strlen(type) - 1] == '\n') {
-            type[strlen(type) - 1] = '\0';
+        // if (type[strlen(type) - 1] == '\n') {        // strlen() called twice = expensive
+        //     type[strlen(type) - 1] = '\0';
+        // }
+
+        if (n > 0 && type[n - 1] == '\n') {
+            type[n - 1] = '\0';
         }
         
         if (strcmp(type, "exit") == 0) {

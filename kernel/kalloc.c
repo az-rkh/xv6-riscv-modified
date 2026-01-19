@@ -84,13 +84,13 @@ kalloc(void)
 uint64 freemem(void) {
   int free_pages = 0;
   struct run *r;
-  r = kmem.freelist;
+
   acquire(&kmem.lock);
-  
+  r = kmem.freelist;
   while (r != 0) {
     free_pages ++;
     r = r->next;
   }
   release(&kmem.lock);
-  return (uint64)free_pages * PGSIZE;
+  return (uint64)free_pages * PGSIZE / 1024 / 1024;  // in MiB
 }

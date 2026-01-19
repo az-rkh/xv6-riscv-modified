@@ -42,7 +42,7 @@ int main(void) {
 
     while (1) {
         
-        printf("calc >" );
+        printf("calc>" );
         memset(type, 0, sizeof(type));
 
         int n = read(0, type, sizeof(type));

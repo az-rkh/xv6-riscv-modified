@@ -4,6 +4,6 @@
 
 int main(void) {
     uint64 mem = freemem();
-    printf("Free memory: %ld bytes\n", mem);
+    printf("Free memory: %ld MiB\n", mem);
     exit(0);
 }

@@ -116,6 +116,5 @@ uint64 sys_hello(void) {
 }
 
 uint64 sys_freemem(void) {
-  freemem();
-  return 0;
+  return freemem();
 }

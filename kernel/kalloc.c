@@ -81,10 +81,11 @@ kalloc(void)
   return (void*)r;
 }
 
+
+// show free memory available right now
 uint64 freemem(void) {
   int free_pages = 0;
   struct run *r;
-
   acquire(&kmem.lock);
   r = kmem.freelist;
   while (r != 0) {

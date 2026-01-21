@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    uint64 bytes = num_pages * 4096;
+    int bytes = num_pages * 4096;
 
     int rc = fork();
 
@@ -23,7 +23,12 @@ int main(int argc, char *argv[]) {
         printf("fork failed");
     }
     else if (rc == 0) {
-        void *p = sbrk(bytes);        
+        char *p = sbrk(bytes);
+        if (*p == (char) - 1) {
+            printf("sbrk failed. exiting\n");
+            exit(1);
+        }
+        printf("Occupied memory: %d\n", bytes);
     }
     else {
         exit(0);

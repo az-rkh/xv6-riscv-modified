@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
             printf("sbrk failed. exiting\n");
             exit(1);
         }
-        printf("Occupied memory: %d\n", bytes);
+        printf("Occupied memory: %d bytes.\n", bytes);
     }
     else {
         exit(0);

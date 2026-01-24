@@ -15,21 +15,20 @@ int main(int argc, char *argv[]) {
     }
 
     int bytes = num_pages * 4096;
+    char *p = sbrk(bytes);
+    if (*p == (char) - 1) {
+        printf("sbrk failed. exiting\n");
+        exit(1);
+    }
+    printf("Occupied memory: %d bytes.\n", bytes); 
 
     int rc = fork();
 
     if (rc < 0) {
         printf("fork failed");
+        exit(1);
     }
-    else if (rc == 0) {
-        char *p = sbrk(bytes);
-        if (*p == (char) - 1) {
-            printf("sbrk failed. exiting\n");
-            exit(1);
-        }
-        printf("Occupied memory: %d bytes.\n", bytes);
-    }
-    else {
+    if (rc > 0) {
         exit(0);
     }
     while (1) {

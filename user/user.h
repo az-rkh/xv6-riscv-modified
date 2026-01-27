@@ -29,6 +29,7 @@ int pingpong(void);
 int freemem(void);
 int calc(void);
 // int sleep(int n);
+int getprocesses(void);
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

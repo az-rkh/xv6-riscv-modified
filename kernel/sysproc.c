@@ -118,3 +118,7 @@ uint64 sys_hello(void) {
 uint64 sys_freemem(void) {
   return freemem();
 }
+
+uint64 sys_getprocesses(void) {
+  return getprocesses();
+}

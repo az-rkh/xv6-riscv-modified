@@ -688,3 +688,27 @@ procdump(void)
     printf("\n");
   }
 }
+
+int getprocesses(void) {
+  struct prinfo {
+    int pid;
+    char name[16];
+    char state[16];
+  }procinf;
+  int count = 0;
+  uint64 addr;
+  argaddr(0, &addr);
+  
+  for (int i = 0; i < NPROC; i++) {
+    struct proc *p = &proc[i];
+    acquire(&p->lock);
+    if (p->state != UNUSED) {
+      copyout(p->pagetable, addr, (char *)&procinf, sizeof(procinf));
+      addr += sizeof(struct prinfo);
+      procinf.pid = p->pid;
+      safestrcpy(procinf.name, p->name, sizeof(p->name));
+    }
+    release(&p->lock);
+  }
+  return count;
+}

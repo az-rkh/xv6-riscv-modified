@@ -151,6 +151,7 @@ UPROGS=\
 	$U/_calc\
 	$U/_uptime\
 	$U/_occup\
+	$U/_ps\
 	
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

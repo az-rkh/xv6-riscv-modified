@@ -689,24 +689,53 @@ procdump(void)
   }
 }
 
+// int getprocesses(void) {
+//   struct prinfo {
+//     int pid;
+//     char name[16];
+//     char state[16];
+//   }procinf;
+//   int count = 0;
+//   uint64 addr;
+//   argaddr(0, &addr);
+  
+//   for (int i = 0; i < NPROC; i++) {
+//     struct proc *p = &proc[i];
+//     acquire(&p->lock);
+//     if (p->state != UNUSED) {
+//       copyout(p->pagetable, addr, (char *)&procinf, sizeof(procinf));
+//       addr += sizeof(struct prinfo);
+//       procinf.pid = p->pid;
+//       safestrcpy(procinf.name, p->name, sizeof(p->name));
+//     }
+//     release(&p->lock);
+//   }
+//   return count;
+// }
+
 int getprocesses(void) {
   struct prinfo {
     int pid;
     char name[16];
     char state[16];
-  }procinf;
-  int count = 0;
+  } procinf;
   uint64 addr;
   argaddr(0, &addr);
-  
+  int count = 0;
   for (int i = 0; i < NPROC; i++) {
-    struct proc *p = &proc[i];
+    struct proc *p = &p[i];
     acquire(&p->lock);
+
     if (p->state != UNUSED) {
-      copyout(p->pagetable, addr, (char *)&procinf, sizeof(procinf));
-      addr += sizeof(struct prinfo);
       procinf.pid = p->pid;
       safestrcpy(procinf.name, p->name, sizeof(p->name));
+      
+      if (copyout(myproc()->pagetable, addr, (char*)&procinf, sizeof(procinf)) < 0) {
+        release(&p->lock);
+        return -1;
+      }
+    addr += sizeof(struct prinfo);
+    count++;
     }
     release(&p->lock);
   }

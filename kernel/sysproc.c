@@ -7,8 +7,6 @@
 #include "proc.h"
 #include "vm.h"
 
-#define ITERATIONS 10000
-
 uint64
 sys_exit(void)
 {
@@ -119,6 +117,6 @@ uint64 sys_freemem(void) {
   return freemem();
 }
 
-uint64 sys_getprocesses(void) {
-  return getprocesses();
+uint64 sys_getprocs(void) {
+  return getprocs();
 }

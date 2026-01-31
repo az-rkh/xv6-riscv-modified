@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "prinfo.h"
 
 struct cpu cpus[NCPU];
 
@@ -20,11 +21,6 @@ static void freeproc(struct proc *p);
 
 extern char trampoline[]; // trampoline.S
 
-struct prinfo {
-  int pid;
-  char name[16];
-  char state[16];
-} procinfo;
 
 // helps ensure that wakeups of wait()ing
 // parents are not lost. helps obey the
@@ -697,20 +693,27 @@ procdump(void)
 
 int getprocs(void) {
   struct proc *p = myproc();
+  int count;
   uint64 addr;
   argaddr(0, &addr);
-  for (int i = 0; i < NPROC; i++) {
+  struct prinfo procinf;
+
+  for (p = proc; p < &p[NPROC]; p++) {
     acquire(&p->lock);
     if (p->state != UNUSED) {
-      copyout(p->pagetable, addr, (char *)&p->pid, sizeof(p->pid));
-      copyout(p->pagetable, addr, (char *)&p->name, sizeof(p->name));
-      copyout(p->pagetable, addr, (char *)&p->state, sizeof(p->state));
-      if (copyout(p->pagetable, addr, (char *)&procinfo, sizeof(procinfo)) < 0) {
+      printf("KERNEL: pid=%d name=%s state=%d\n", p->pid, p->name, p->state);
+      // procinf.pid = p->pid;
+      // procinf.state = p->state;
+      // safestrcpy(procinf.name, p->name, sizeof(procinf.name));
+      if (copyout(myproc()->pagetable, addr, (char *)&procinf, sizeof(procinf)) < 0) {
         release(&p->lock);
         return -1;
       }
+      
+      addr += sizeof(procinf);
+      count++;
     }
     release(&p->lock);
   }
-  return 0;
+  return count;
 }

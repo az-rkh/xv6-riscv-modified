@@ -693,23 +693,21 @@ procdump(void)
 
 int getprocs(void) {
   struct proc *p = myproc();
-  int count;
+  int count = 0;
   uint64 addr;
   argaddr(0, &addr);
   struct prinfo procinf;
 
-  for (p = proc; p < &p[NPROC]; p++) {
+  for (p = proc; p < &proc[NPROC]; p++) {
     acquire(&p->lock);
     if (p->state != UNUSED) {
-      printf("KERNEL: pid=%d name=%s state=%d\n", p->pid, p->name, p->state);
-      // procinf.pid = p->pid;
-      // procinf.state = p->state;
-      // safestrcpy(procinf.name, p->name, sizeof(procinf.name));
+      procinf.pid = p->pid;
+      procinf.state = p->state;
+      safestrcpy(procinf.name, p->name, sizeof(procinf.name));
       if (copyout(myproc()->pagetable, addr, (char *)&procinf, sizeof(procinf)) < 0) {
         release(&p->lock);
         return -1;
       }
-      
       addr += sizeof(procinf);
       count++;
     }

@@ -692,7 +692,7 @@ procdump(void)
 }
 
 int getprocs(void) {
-  struct proc *p = myproc();
+  struct proc *p;
   int count = 0;
   uint64 addr;
   argaddr(0, &addr);

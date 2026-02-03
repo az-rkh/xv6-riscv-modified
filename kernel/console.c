@@ -24,7 +24,11 @@
 
 #define BACKSPACE 0x100  // erase the last output character
 #define C(x)  ((x)-'@')  // Control-x
+#define HISTSZ 16
 
+char history[HISTSZ][100];
+int hist_count = 0;
+int hist_pos = 0;
 //
 // send one character to the uart, but don't use
 // interrupts or sleep(). safe to be called from
@@ -44,7 +48,7 @@ consputc(int c)
 
 struct {
   struct spinlock lock;
-  
+  int esc_state;
   // input circular buffer
 #define INPUT_BUF_SIZE 128
   char buf[INPUT_BUF_SIZE];
@@ -164,6 +168,72 @@ consoleintr(int c)
   default:
     if(c != 0 && cons.e-cons.r < INPUT_BUF_SIZE){
       c = (c == '\r') ? '\n' : c;
+
+      // Handle escape sequences for arrow keys
+      if (c == 0x1b) {
+        cons.esc_state = 1;
+        break;
+      }
+      if (cons.esc_state == 1) {
+        if (c == '[') {
+          cons.esc_state = 2;
+        } else {
+          cons.esc_state = 0;
+        }
+        break;
+      }
+      if (cons.esc_state == 2) {
+        cons.esc_state = 0;
+        if (c == 'A' || c == 'B') {  // Up or Down arrow
+          // Calculate new history position
+          int new_pos = hist_pos;
+          if (c == 'A' && hist_pos > 0) {
+            new_pos = hist_pos - 1;
+          } else if (c == 'B' && hist_pos < hist_count) {
+            new_pos = hist_pos + 1;
+          }
+          if (new_pos == hist_pos)
+            break;
+          hist_pos = new_pos;
+
+          // Erase current line
+          while (cons.e != cons.w && cons.buf[(cons.e-1) % INPUT_BUF_SIZE] != '\n') {
+            cons.e--;
+            consputc(BACKSPACE);
+          }
+
+          // Insert history entry (or empty if at end)
+          if (hist_pos < hist_count) {
+            char *cmd = history[hist_pos];
+            while (*cmd) {
+              cons.buf[cons.e++ % INPUT_BUF_SIZE] = *cmd;
+              consputc(*cmd);
+              cmd++;
+            }
+          }
+        }
+        break;
+      }
+
+      // Save command to history when newline is entered
+      if (c == '\n') {
+        // Copy current line to history
+        int len = 0;
+        uint i = cons.w;
+        while (i < cons.e && len < 99) {
+          char ch = cons.buf[i % INPUT_BUF_SIZE];
+          if (ch != '\n')
+            history[hist_count % HISTSZ][len++] = ch;
+          i++;
+        }
+        if (len > 0) {
+          history[hist_count % HISTSZ][len] = '\0';
+          hist_count++;
+          if (hist_count > HISTSZ)
+            hist_count = HISTSZ;
+        }
+        hist_pos = hist_count;  // Reset to end of history
+      }
 
       // echo back to the user.
       consputc(c);

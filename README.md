@@ -126,8 +126,6 @@ user/
 
 Based on [xv6-riscv](https://github.com/mit-pdos/xv6-riscv) by MIT PDOS.
 
-Original xv6 contributors: Russ Cox, Cliff Frey, Xiao Yu, Nickolai Zeldovich, and Austin Clements.
-
 ## References
 
 - [MIT 6.1810 Operating System Engineering](https://pdos.csail.mit.edu/6.1810/)

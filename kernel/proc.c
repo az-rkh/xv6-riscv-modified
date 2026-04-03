@@ -14,6 +14,7 @@ struct proc proc[NPROC];
 struct proc *initproc;
 
 int nextpid = 1;
+int vrtmin = __UINT64_MAX__;
 struct spinlock pid_lock;
 
 extern void forkret(void);
@@ -147,6 +148,16 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
+  
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p -> lock);
+    if (p->state != UNUSED) {
+      if (p->vruntime < vrtmin) {
+        vrtmin = p->vruntime;
+      }
+    }
+    release(&p->lock);
+  }
 
   return p;
 }

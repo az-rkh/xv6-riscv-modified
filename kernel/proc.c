@@ -14,7 +14,6 @@ struct proc proc[NPROC];
 struct proc *initproc;
 
 int nextpid = 1;
-int vrtmin = __UINT64_MAX__;
 struct spinlock pid_lock;
 
 extern void forkret(void);
@@ -112,6 +111,7 @@ allocpid()
 static struct proc*
 allocproc(void)
 {
+  uint64 vrtmin = __UINT64_MAX__;
   struct proc *p;
 
   for(p = proc; p < &proc[NPROC]; p++) {
@@ -149,17 +149,21 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
   
+  struct proc *newp = p;
+
   for (p = proc; p < &proc[NPROC]; p++) {
+    if (p == newp) continue;
     acquire(&p -> lock);
-    if (p->state != UNUSED) {
-      if (p->vruntime < vrtmin) {
-        vrtmin = p->vruntime;
-      }
+    if (p->state != UNUSED && p->vruntime < vrtmin) {
+      vrtmin = p->vruntime;
     }
     release(&p->lock);
   }
-
-  return p;
+  if (vrtmin == __UINT64_MAX__) {
+    newp->vruntime = 0;
+  }
+  newp->vruntime = vrtmin;
+  return newp;
 }
 
 // free a proc structure and the data hanging from it,
@@ -442,6 +446,7 @@ scheduler(void)
 
   c->proc = 0;
   for(;;){
+    uint64 vrtmin = __UINT64_MAX__;
     // The most recent process to run may have had interrupts
     // turned off; enable them to avoid a deadlock if all
     // processes are waiting. Then turn them back off
@@ -451,9 +456,18 @@ scheduler(void)
     intr_off();
 
     int found = 0;
+
+    for (p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if (p->state == RUNNABLE && p->vruntime < vrtmin) {
+          vrtmin = p->vruntime;
+      }
+      release(&p->lock);
+    }
+
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
-      if(p->state == RUNNABLE) {
+      if(p->state == RUNNABLE && p->vruntime == vrtmin) {
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
@@ -465,6 +479,8 @@ scheduler(void)
         // It should have changed its p->state before coming back.
         c->proc = 0;
         found = 1;
+        release(&p->lock);
+        break;
       }
       release(&p->lock);
     }

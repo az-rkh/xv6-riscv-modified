@@ -28,6 +28,12 @@ xv6 is a teaching operating system developed by MIT, based on Dennis Ritchie's a
 
 ### Kernel Features
 
+**CFS-like Scheduler**
+- Replaces xv6's default round-robin scheduler with a fairness-based policy inspired by Linux's Completely Fair Scheduler (CFS)
+- Each process tracks a `vruntime` field (virtual runtime) that increments on every timer tick
+- New processes inherit the minimum `vruntime` among all existing processes to prevent starvation
+- Scheduler always picks the `RUNNABLE` process with the lowest `vruntime`
+
 **Shell Command History**
 - Navigate previous commands using up/down arrow keys
 - Circular buffer storing up to 16 commands
@@ -108,7 +114,8 @@ calc> exit
 ```
 kernel/
 ├── kalloc.c      # Memory allocator (freemem implementation)
-├── proc.c        # Process management (getprocs implementation)
+├── proc.c        # Process management (getprocs, CFS scheduler, vruntime)
+├── trap.c        # Trap handler (vruntime increment on timer interrupt)
 ├── console.c     # Console driver (command history)
 ├── sysproc.c     # System call implementations
 └── prinfo.h      # Process info structure definition

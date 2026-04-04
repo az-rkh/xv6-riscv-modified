@@ -20,7 +20,7 @@ xv6 is a teaching operating system developed by MIT, based on Dennis Ritchie's a
 | Program | Description |
 |---------|-------------|
 | `freemem` | Displays available system memory by querying the kernel's free page allocator |
-| `ps` | Lists all processes with PID, name, and state (similar to Linux `ps`) |
+| `ps` | Lists all processes with PID, name, state, and vruntime |
 | `uptime` | Shows system uptime in seconds |
 | `calc` | Interactive calculator supporting basic arithmetic operations |
 | `pingpong` | Demonstrates inter-process communication using pipes |
@@ -96,9 +96,9 @@ $ freemem
 Free memory: 127 MiB
 
 $ ps
-PID     NAME            STATE
-1       init            SLEEP
-2       sh              RUNNING
+PID     NAME            STATE           VRUNTIME
+1       init            SLEEP           42
+2       sh              RUNNING         39
 
 $ uptime
 Uptime: 42,7 seconds

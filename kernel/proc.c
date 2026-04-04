@@ -730,6 +730,7 @@ int getprocs(void) {
     if (p->state != UNUSED) {
       procinf.pid = p->pid;
       procinf.state = p->state;
+      procinf.vruntime = p->vruntime;
       safestrcpy(procinf.name, p->name, sizeof(procinf.name));
       if (copyout(myproc()->pagetable, addr, (char *)&procinf, sizeof(procinf)) < 0) {
         release(&p->lock);

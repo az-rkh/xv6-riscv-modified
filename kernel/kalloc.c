@@ -9,6 +9,9 @@
 #include "riscv.h"
 #include "defs.h"
 
+#define MIN_ORDER 6
+#define MAX_ORDER 12
+
 void freerange(void *pa_start, void *pa_end);
 
 extern char end[]; // first address after kernel.
@@ -20,8 +23,16 @@ struct run {
 
 struct {
   struct spinlock lock;
-  struct run *freelist;
+  struct run *free_lists[7];
+  char *meta;
 } kmem;
+
+struct run free_lists[MAX_ORDER - MIN_ORDER + 1];
+
+void bd_init()
+{
+  
+}
 
 void
 kinit()

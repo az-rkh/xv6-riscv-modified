@@ -9,9 +9,6 @@
 #include "riscv.h"
 #include "defs.h"
 
-#define MIN_ORDER 6
-#define MAX_ORDER 12
-
 void freerange(void *pa_start, void *pa_end);
 
 extern char end[]; // first address after kernel.
@@ -21,24 +18,40 @@ struct run {
   struct run *next;
 };
 
+struct page_info {
+  uint8 is_head;
+  uint8 is_free;
+  uint8 order;
+};
+
 struct {
   struct spinlock lock;
-  struct run *free_lists[7];
-  char *meta;
+  struct run *free_list[MAX_ORDER - MIN_ORDER + 1];
+  uint64 heap_start;
+  uint64 heap_end;
+  struct page_info *metadata;
+  uint64 managed_pages;
 } kmem;
-
-struct run free_lists[MAX_ORDER - MIN_ORDER + 1];
-
-void bd_init()
-{
-  
-}
 
 void
 kinit()
 {
-  initlock(&kmem.lock, "kmem");
-  freerange(end, (void*)PHYSTOP);
+  initlock(&kmem.lock, "kmem_lock");
+  memset(kmem.free_list, 0, sizeof(kmem.free_list));
+  int metadata_start = PGROUNDUP((uint64)end);
+  int possible_pages = (PHYSTOP - PGROUNDUP((uint64)end)) / PGSIZE;
+  int metadata_size = possible_pages * sizeof(struct page_info);
+  int metadata_end = PGROUNDUP(metadata_start) + metadata_size;
+  kmem.heap_start = metadata_end;
+  kmem.heap_end = PHYSTOP;
+  kmem.metadata = (struct page_info *)metadata_start;
+  kmem.managed_pages = (kmem.heap_end - kmem.heap_start) / PGSIZE;
+  memset(kmem.metadata, 0, metadata_size);
+}
+
+void get_order(uint64 size)
+{
+  
 }
 
 void

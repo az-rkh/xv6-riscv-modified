@@ -142,8 +142,8 @@ kfree(void *pa)
   r = (struct run*)pa;
 
   acquire(&kmem.lock);
-  r->next = kmem.freelist;
-  kmem.freelist = r;
+  r->next = kmem.free_list;
+  *kmem.free_list = r;
   release(&kmem.lock);
 }
 
@@ -156,9 +156,9 @@ kalloc(void)
   struct run *r;
 
   acquire(&kmem.lock);
-  r = kmem.freelist;
+  r = kmem.free_list;
   if(r)
-    kmem.freelist = r->next;
+    *kmem.free_list = r->next;
   release(&kmem.lock);
 
   if(r)

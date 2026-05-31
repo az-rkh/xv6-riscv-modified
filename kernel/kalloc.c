@@ -41,18 +41,18 @@ kinit()
   uint64 metadata_start = PGROUNDUP((uint64)end);
   uint64 possible_pages = (PHYSTOP - PGROUNDUP((uint64)end)) / PGSIZE;
   uint64 metadata_size = possible_pages * sizeof(struct page_info);
-  uint64 metadata_end = PGROUNDUP(metadata_start) + metadata_size;
+  uint64 metadata_end = PGROUNDUP(metadata_start + metadata_size);
   kmem.heap_start = metadata_end;
   kmem.heap_end = PHYSTOP;
   kmem.metadata = (struct page_info *)metadata_start;
   kmem.managed_pages = (kmem.heap_end - kmem.heap_start) / PGSIZE;
   memset(kmem.metadata, 0, metadata_size);
-  freerange(end, PHYSTOP);
+  freerange(kmem.heap_start, PHYSTOP);
 }
 
 uint64 pg_addr(int index)
 {
-  return kmem.heap_start * index + PGSIZE;
+  return kmem.heap_start + index * PGSIZE;
 }
 
 uint64 get_index(uint64 pa)
@@ -131,19 +131,46 @@ freerange(void *pa_start, void *pa_end)
 void
 kfree(void *pa)
 {
-  struct run *r;
+  if ((uint64)pa < kmem.heap_start || (uint64)pa > kmem.heap_end) 
+    return;
 
-  if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
-    panic("kfree");
-
-  // Fill with junk to catch dangling refs.
-  memset(pa, 1, PGSIZE);
-
-  r = (struct run*)pa;
-
+  int index = get_index(pa);
+  struct page_info *info = &kmem.metadata[index];
+  int fill_size = block_size_pages(info->order) * PGSIZE;
+  memset(pa, 1, fill_size);
+  int current_order = info->order;
+  int min;
   acquire(&kmem.lock);
-  r->next = kmem.free_list;
-  *kmem.free_list = r;
+  while (1) {
+    int bud_index = buddy_index(current_order, index);
+
+    if (bud_index >= kmem.managed_pages) 
+      break;
+    
+    if (kmem.metadata[bud_index].is_free != 1) 
+      break;
+    
+    if (kmem.metadata[bud_index].order != current_order) 
+      break;
+    
+
+    remove_block_from_freelist(bud_index, kmem.metadata[bud_index].order);
+    kmem.metadata[bud_index].is_free = 0;
+    kmem.metadata[bud_index].is_head = 0;
+
+    if (bud_index < index) {
+      min = bud_index;
+      current_order++;
+    }
+    else {
+      min = index;
+      current_order++;
+    }
+    index = min;
+    if (current_order > MAX_ORDER)
+      break;
+  }
+  add_block_to_freelist(index, current_order);
   release(&kmem.lock);
 }
 
@@ -153,17 +180,11 @@ kfree(void *pa)
 void *
 kalloc(void)
 {
-  struct run *r;
-
-  acquire(&kmem.lock);
-  r = kmem.free_list;
-  if(r)
-    *kmem.free_list = r->next;
-  release(&kmem.lock);
-
-  if(r)
-    memset((char*)r, 5, PGSIZE); // fill with junk
-  return (void*)r;
+  for (int order = 0; order < kmem.free_list[order]; order++) {
+    if (kmem.free_list[order] != 0) {
+      
+    }
+  }
 }
 
 
@@ -172,7 +193,7 @@ uint64 freemem(void) {
   int free_pages = 0;
   struct run *r;
   acquire(&kmem.lock);
-  r = kmem.freelist;
+  r = kmem.free_list;
   while (r != 0) {
     free_pages ++;
     r = r->next;

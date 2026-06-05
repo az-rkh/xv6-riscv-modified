@@ -47,7 +47,7 @@ kinit()
   kmem.metadata = (struct page_info *)metadata_start;
   kmem.managed_pages = (kmem.heap_end - kmem.heap_start) / PGSIZE;
   memset(kmem.metadata, 0, metadata_size);
-  freerange(kmem.heap_start, PHYSTOP);
+  freerange((uint64)kmem.heap_start, PHYSTOP);
 }
 
 uint64 pg_addr(int index)
@@ -180,11 +180,34 @@ kfree(void *pa)
 void *
 kalloc(void)
 {
-  for (int order = 0; order < kmem.free_list[order]; order++) {
-    if (kmem.free_list[order] != 0) {
-      
-    }
+  int order = 0;
+
+  acquire(&kmem.lock);
+
+  for (; order <= MAX_ORDER; order++) { 
+    if (kmem.free_list[order] != 0) 
+      break;
   }
+
+  if (order > MAX_ORDER) {
+    release(&kmem.lock);
+    return 0;
+  }
+    
+  struct run *r = kmem.free_list[order];
+  kmem.free_list[order] = r->next;
+  int index = get_index((uint64)r);
+  while (order > 0) {
+    int upper = index + block_size_pages(order - 1);
+    add_block_to_freelist(upper, order - 1);
+    order--;    
+  }
+  kmem.metadata[index].is_free = 0;
+  kmem.metadata[index].is_head = 1;
+  kmem.metadata[index].order = order;
+
+  release(&kmem.lock);
+  return (void *)pg_addr(index);
 }
 
 

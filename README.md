@@ -28,6 +28,13 @@ xv6 is a teaching operating system developed by MIT, based on Dennis Ritchie's a
 
 ### Kernel Features
 
+**Buddy Allocator**
+- Replaces xv6's default free-list allocator with a buddy system allocator
+- Manages physical memory in power-of-two sized blocks (order 0 = 1 page up to order 15)
+- `kfree` coalesces freed blocks with their buddies upward until no further merging is possible
+- `kalloc` scans free lists from order 0 upward, splits larger blocks down to the needed size
+- Per-page metadata (`is_free`, `is_head`, `order`) tracks block state for coalescing decisions
+
 **CFS-like Scheduler**
 - Replaces xv6's default round-robin scheduler with a fairness-based policy inspired by Linux's Completely Fair Scheduler (CFS)
 - Each process tracks a `vruntime` field (virtual runtime) that increments on every timer tick
@@ -113,7 +120,7 @@ calc> exit
 
 ```
 kernel/
-├── kalloc.c      # Memory allocator (freemem implementation)
+├── kalloc.c      # Buddy allocator (kfree coalescing, kalloc splitting)
 ├── proc.c        # Process management (getprocs, CFS scheduler, vruntime)
 ├── trap.c        # Trap handler (vruntime increment on timer interrupt)
 ├── console.c     # Console driver (command history)
